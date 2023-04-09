@@ -1,0 +1,316 @@
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
+
+byte  buttonS = 0;            //  
+byte buttonS_OLD = 0;        //   int  connect =  0;     
+int  connect_OK = 0;         //   ?
+
+byte go_Old = 14;            //    
+byte go_New = 14;            //    
+byte adj_Old = 20;           //   
+byte  adj_New = 20;           //   
+byte motor_Send = 14;        //     
+byte bounce_b  = 50;          //  
+
+const int pinZ = 57;         //       
+const int pinX  = A1;         //  X 
+const int pinY = A2;         //  Y 
+int jvalueX;                 //   X 
+int jvalueY;                        //   Y 
+byte turret = 0;                    //    (1  X+, 2  X-)
+boolean turret_stop = false;        //    (1  X+, 2  X-)
+
+void  setup() {
+
+Serial1.begin(9600);         //open port APC220
+
+pinMode(57,  INPUT);
+
+pinMode(36, INPUT_PULLUP);   // light        - 
+pinMode(37, INPUT_PULLUP);   // laser Sight  -  
+pinMode(38, INPUT_PULLUP);   // gun          - 
+
+pinMode(22  , INPUT_PULLUP);
+pinMode(23 , INPUT_PULLUP);
+pinMode(24 , INPUT_PULLUP);
+pinMode(25  , INPUT_PULLUP);
+pinMode(26 , INPUT_PULLUP);
+pinMode(27 , INPUT_PULLUP);
+pinMode(28  , INPUT_PULLUP);
+
+pinMode(29 , INPUT_PULLUP);
+pinMode(30 , INPUT_PULLUP);
+pinMode(31  , INPUT_PULLUP);
+pinMode(32 , INPUT_PULLUP);
+pinMode(33 , INPUT_PULLUP);
+pinMode(34  , INPUT_PULLUP);
+pinMode(35 , INPUT_PULLUP);
+
+
+//    
+lcd.begin(20,  4);
+lcd.setCursor(8, 0);
+lcd.print("LSG");
+lcd.setCursor(8, 1);
+lcd.print("000");
+lcd.setCursor(8,  2);
+lcd.print("---");
+lcd.setCursor(0, 4);
+lcd.print("link--");
+
+//    
+lcd.setCursor(0, 0);
+lcd.print(go_New);
+lcd.setCursor(0, 1);
+lcd.print(adj_New);
+
+//   
+
+lcd.setCursor(15, 1);
+lcd.print("j");
+
+
+}
+
+//---------------------------------------------------|
+//     2- |
+//---------------------------------------------------|
+int Byte2sendFunction(byte  BYTE1, byte BYTE2){
+  int result;
+//        !!!
+  Serial1.setTimeout(2000);
+//  2 2-    
+  byte Byte2send[2] = {0,0};      //
+  byte Byte2receipt[2] = {0,0};   //
+//  
+  Byte2send[0] = BYTE1;
+  Byte2send[1] = BYTE2; 
+//   
+  Serial1.write (Byte2send,2);
+//          
+  Serial1.readBytes(Byte2receipt,2);
+//   
+  if ((Byte2send[0] == Byte2receipt[0])&&(Byte2send[1] == Byte2receipt[1]))  {
+//     result = 1  0      
+  result = 1;
+  lcd.setCursor(5, 4);
+  lcd.print("Y");  //    !!!
+  } else {
+  result = 0;
+  lcd.setCursor(5, 4);
+  lcd.print("N");  //    !!!
+  }
+//     
+  return result;
+}
+//---------------------------------------------------|
+
+void  loop() {
+  
+//---------------------------------------------------|
+//                !!!               |
+//---------------------------------------------------|
+
+if  (!digitalRead(36)) {      // 
+bitWrite(buttonS, 0, !(bitRead(buttonS, 0))); //   
+lcd.setCursor(8, 1);
+lcd.print(bitRead(buttonS, 0));
+}
+
+if (!digitalRead(37))  {      // 
+bitWrite(buttonS, 1, !(bitRead(buttonS, 1))); //   
+lcd.setCursor(9,  1);
+lcd.print(bitRead(buttonS, 1));
+}
+
+// 
+bitWrite(buttonS, 2, !digitalRead(38));      //   
+lcd.setCursor(10, 1);
+lcd.print(bitRead(buttonS, 2));
+
+//---------------------------------------------------|
+//          |
+//---------------------------------------------------|
+if (buttonS!=buttonS_OLD)  {
+connect_OK = Byte2sendFunction(1,buttonS);
+buttonS_OLD = buttonS;
+//    !!!
+if (connect_OK == 1) {
+lcd.setCursor(8, 2);
+lcd.print(bitRead(buttonS,  0));
+lcd.setCursor(9, 2);
+lcd.print(bitRead(buttonS, 1));  
+lcd.setCursor(10,2);
+lcd.print(bitRead(buttonS,  2));    
+}
+//     !!!
+if (connect_OK == 0) {
+lcd.setCursor(8, 2);
+lcd.print("---");  
+}
+}
+
+//---------------------------------------------------|
+//                 !!!           |
+//---------------------------------------------------|
+adj_New  = 20;
+
+if (!digitalRead(32)) {
+delay(bounce_b);
+if (!digitalRead(25))  go_New = 14; else adj_New = 32;  
+}
+
+if (!digitalRead(25)) {
+delay(bounce_b);
+if  (!digitalRead(32)) go_New = 14; else adj_New = 25;  
+}
+
+if (!digitalRead(31))  {
+delay(bounce_b);
+if (!digitalRead(24)) go_New = 15; else adj_New = 31;  
+}
+
+if  (!digitalRead(24)) {
+delay(bounce_b);
+if (!digitalRead(31)) go_New = 15; else  adj_New = 24;  
+}
+
+if (!digitalRead(30)) {
+delay(bounce_b);
+if (!digitalRead(23))  go_New = 16; else adj_New = 30;  
+}
+
+if (!digitalRead(23)) {
+delay(bounce_b);
+if  (!digitalRead(30)) go_New = 16; else adj_New = 23;  
+}
+
+if (!digitalRead(29))  {
+delay(bounce_b);
+if (!digitalRead(22)) go_New = 17; else adj_New = 29;  
+}
+
+if  (!digitalRead(22)) {
+delay(bounce_b);
+if (!digitalRead(29)) go_New = 17; else  adj_New = 22;  
+}
+
+if (!digitalRead(33)) {
+delay(bounce_b);
+if (!digitalRead(26))  go_New = 13; else adj_New = 33;  
+}
+
+if (!digitalRead(26)) {
+delay(bounce_b);
+if  (!digitalRead(33)) go_New = 13; else adj_New = 26;  
+}
+
+if (!digitalRead(34))  {
+delay(bounce_b);
+if (!digitalRead(27)) go_New = 12; else adj_New = 34;  
+}
+
+if  (!digitalRead(27)) {
+delay(bounce_b);
+if (!digitalRead(34)) go_New = 12; else  adj_New = 27;  
+}
+
+if (!digitalRead(35)) {
+delay(bounce_b);
+if (!digitalRead(28))  go_New = 11; else adj_New = 35;  
+}
+
+if (!digitalRead(28)) {
+delay(bounce_b);
+if  (!digitalRead(35)) go_New = 11; else adj_New = 28;  
+}
+
+if ((go_Old !=  go_New) || (adj_Old != adj_New)){
+//     
+lcd.setCursor(0, 0);
+lcd.print(go_New);
+lcd.setCursor(0,  1);
+lcd.print(adj_New);
+
+if (adj_New > 20) {   //     
+motor_Send =  adj_New;
+adj_Old = adj_New;  
+} else {              //  
+motor_Send = go_New;  
+go_Old = go_New;
+adj_Old = 20;         //   
+}
+//     !!!
+
+connect_OK  = Byte2sendFunction(2,motor_Send);
+
+//    !!!
+if (connect_OK == 1) {
+lcd.setCursor(0,  2);
+lcd.print(motor_Send);
+}
+//     !!!
+if (connect_OK == 0) {
+lcd.setCursor(0,  2);
+lcd.print("--");  
+}
+
+} //    
+
+
+//---------------------------------------------------|
+//                             !!!           |
+//---------------------------------------------------|
+
+//  !!!
+if (digitalRead(pinZ)) {
+lcd.setCursor(16, 0);
+lcd.print("Z");    
+} else {
+lcd.setCursor(16, 0);
+lcd.print("z");  
+}
+
+//  
+jvalueX = analogRead(pinX);
+jvalueY = analogRead(pinY); 
+turret = 0;
+//0-  -    
+//1-  -    
+if (jvalueX > 712) bitWrite(turret, 0, 1);
+if (jvalueX  < 312) bitWrite(turret, 1, 1);
+//4  "  "
+if ((jvalueX > 1013)||(jvalueX  < 10)) bitWrite(turret, 4, 1);
+
+//      
+lcd.setCursor(16, 1);
+lcd.print(bitRead(turret,0));
+lcd.setCursor(14,  1);
+lcd.print(bitRead(turret,1));
+
+//2-  -  
+//3-  -  
+if (jvalueY  > 712) bitWrite(turret, 2, 1);
+if (jvalueY < 312) bitWrite(turret, 3, 1);
+//      Y
+lcd.setCursor(15, 0);
+lcd.print(bitRead(turret,2));
+lcd.setCursor(15,  1);
+lcd.print(bitRead(turret,3));
+
+lcd.setCursor(15, 2);
+lcd.print("    ");
+lcd.setCursor(15, 2);
+lcd.print(jvalueX);
+
+if (turret !=0)  {
+connect_OK = Byte2sendFunction(3,turret);
+turret_stop = true;  
+}
+
+if  ((turret == 0) && (turret_stop)) {                                                               
+connect_OK  = Byte2sendFunction(3,0);
+turret_stop = false;  
+}
+
+}
