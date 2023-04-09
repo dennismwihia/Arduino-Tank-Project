@@ -1,0 +1,368 @@
+#include <Servo.h>
+Servo servoX;
+Servo servoY;
+
+byte X = 87;
+byte  Xmin = 10;
+byte Xmax = 165;
+
+byte Xplus = 0;
+byte Yplus = 0;
+
+byte  Y = 78;
+byte Ymin = 60;
+byte Ymax = 103;
+byte turret = 0;                  //    (1  X+, 2  X-)
+
+byte IncomingCount = 0;           //  
+byte Byte2incoming[2]  = {0,0};    //  
+byte b_registry = 0;              //    
+
+byte laserPWM  = 128;
+byte buttonS = 0;                 //   
+
+byte motorS = 14;                 //  
+byte Speed1_pwm = 56;             //  
+byte Speed2_pwm = 96;             //   
+byte Speed3_pwm = 255;            // 
+byte Speed1RL_pwm = 88;           //  
+byte Speed2RL_pwm = 112;          //   
+byte Speed3RL_pwm = 255;          //  
+byte Speed0RL_pwm = 128;          //  
+
+
+void setup() {
+
+Serial.begin(9600);
+//        !!!
+Serial.setTimeout(500);
+  
+pinMode(02, OUTPUT); // light -  
+pinMode(06, OUTPUT); // laser - 
+pinMode(11, OUTPUT); // gun   - 
+pinMode(13,  OUTPUT); //  
+
+//   L298N
+pinMode(3, OUTPUT);  //D3 - ENA
+pinMode(17,  OUTPUT); //AO - INPUT1
+pinMode(16, OUTPUT); //A1 - INPUT2
+
+pinMode(15,  OUTPUT); //A2 - INPUT3
+pinMode(14, OUTPUT); //A3 - INPUT4
+pinMode(5, OUTPUT);  //D5 - ENB
+
+servoX.attach(9);
+servoY.attach(10);
+//    
+servoX.write(X);
+servoY.write(Y);
+}
+
+void  loop() {
+
+//   1.5  2- 
+//   1.5       
+//        
+
+IncomingCount  = Serial.readBytes(Byte2incoming,2);
+
+if (IncomingCount > 1) { // 2  -    
+//digitalWrite(13,  LOW);
+//    2-  !!!
+b_registry = Byte2incoming[0];
+//    !!!
+if (b_registry  == 1) buttonS  = Byte2incoming[1];
+//    !!!
+if (b_registry == 2) motorS  =  Byte2incoming[1];
+//   !!!
+if (b_registry == 3) turret  =  Byte2incoming[1];
+
+//  2   -  
+Serial.write (Byte2incoming,2);  
+} else {     //    ( )    1.5 
+//digitalWrite(13,  HIGH);
+//  -   !!!
+}
+
+//---------------------------------------------------|
+//                             |
+//---------------------------------------------------|
+
+digitalWrite(02,bitRead(buttonS,  0));  // light - 
+
+if (bitRead(buttonS, 1)) {             // laser Sight -  
+analogWrite(6, laserPWM);              //  
+} else analogWrite(6, 0);
+
+if  (bitRead(buttonS, 2)) {  // 
+analogWrite(11,160);        //   
+delay(125);                 //   pwm160                
+analogWrite(11,0);          //  125ms
+bitWrite(buttonS,  2, 0);    //   
+}
+
+//---------------------------------------------------|
+//           L298N                     |
+//---------------------------------------------------|
+
+if  (motorS == 14){    
+// 
+analogWrite(3, 0);          //D3 - ENA
+digitalWrite(14,  0);        //AO - INPUT1
+digitalWrite(15, 0);        //A1 - INPUT2
+// 
+analogWrite(5,  0);          //D5 - ENA
+digitalWrite(16, 0);        //A2 - INPUT3
+digitalWrite(17,  0);        //A3 - INPUT4
+}
+
+//
+
+if (motorS == 15){    
+//  
+analogWrite(3,  Speed1_pwm);     //D3 - ENA
+digitalWrite(16, 1);            //AO - INPUT1
+digitalWrite(17,  0);            //A1 - INPUT2
+//   
+analogWrite(5, Speed1_pwm);     //D5 -  ENA
+digitalWrite(14, 1);            //A2 - INPUT3
+digitalWrite(15, 0);            //A3  - INPUT4
+}
+
+if (motorS == 13){    
+//  
+analogWrite(3, Speed1_pwm);     //D3 - ENA
+digitalWrite(16, 0);            //AO - INPUT1
+digitalWrite(17,  1);            //A1 - INPUT2
+//   
+analogWrite(5, Speed1_pwm);     //D5 -  ENA
+digitalWrite(14, 0);            //A2 - INPUT3
+digitalWrite(15, 1);            //A3  - INPUT4
+}
+
+if (motorS == 24){    
+//  
+analogWrite(3, Speed1RL_pwm);     //D3 - ENA
+digitalWrite(16, 0);            //AO - INPUT1
+digitalWrite(17,  0);            //A1 - INPUT2
+//   
+analogWrite(5, Speed1RL_pwm);     //D5  - ENA
+digitalWrite(14, 1);            //A2 - INPUT3
+digitalWrite(15, 0);            //A3  - INPUT4
+}
+
+if (motorS == 31){    
+//  
+analogWrite(3, Speed1RL_pwm);     //D3 - ENA
+digitalWrite(16, 1);            //AO - INPUT1
+digitalWrite(17,  0);            //A1 - INPUT2
+//   
+analogWrite(5, Speed1RL_pwm);     //D5  - ENA
+digitalWrite(14, 0);            //A2 - INPUT3
+digitalWrite(15, 0);            //A3  - INPUT4
+}
+
+if (motorS == 26){    
+//  
+analogWrite(3, Speed1RL_pwm);     //D3 - ENA
+digitalWrite(16, 0);            //AO - INPUT1
+digitalWrite(17,  0);            //A1 - INPUT2
+//   
+analogWrite(5, Speed1RL_pwm);     //D5  - ENA
+digitalWrite(14, 0);            //A2 - INPUT3
+digitalWrite(15, 1);            //A3  - INPUT4
+}
+
+if (motorS == 33){    
+//  
+analogWrite(3, Speed1RL_pwm);     //D3 - ENA
+digitalWrite(16, 0);            //AO - INPUT1
+digitalWrite(17,  1);            //A1 - INPUT2
+//   
+analogWrite(5, Speed1RL_pwm);     //D5  - ENA
+digitalWrite(14, 0);            //A2 - INPUT3
+digitalWrite(15, 0);            //A3  - INPUT4
+}   
+
+
+//
+
+if (motorS == 17){    
+//  
+analogWrite(3,  Speed3_pwm);     //D3 - ENA
+digitalWrite(16, 1);            //AO - INPUT1
+digitalWrite(17,  0);            //A1 - INPUT2
+//   
+analogWrite(5, Speed3_pwm);     //D5 -  ENA
+digitalWrite(14, 1);            //A2 - INPUT3
+digitalWrite(15, 0);            //A3  - INPUT4
+}
+
+if (motorS == 11){    
+//  
+analogWrite(3, Speed3_pwm);     //D3 - ENA
+digitalWrite(16, 0);            //AO - INPUT1
+digitalWrite(17,  1);            //A1 - INPUT2
+//   
+analogWrite(5, Speed3_pwm);     //D5 -  ENA
+digitalWrite(14, 0);            //A2 - INPUT3
+digitalWrite(15, 1);            //A3  - INPUT4
+}
+
+if (motorS == 22){    
+//  
+analogWrite(3, Speed3RL_pwm);     //D3 - ENA
+digitalWrite(16, 0);            //AO - INPUT1
+digitalWrite(17,  0);            //A1 - INPUT2
+//   
+analogWrite(5, Speed3RL_pwm);     //D5  - ENA
+digitalWrite(14, 1);            //A2 - INPUT3
+digitalWrite(15, 0);            //A3  - INPUT4
+}
+
+if (motorS == 29){    
+//  
+analogWrite(3, Speed3RL_pwm);     //D3 - ENA
+digitalWrite(16, 1);            //AO - INPUT1
+digitalWrite(17,  0);            //A1 - INPUT2
+//   
+analogWrite(5, Speed3RL_pwm);     //D5  - ENA
+digitalWrite(14, 0);            //A2 - INPUT3
+digitalWrite(15, 0);            //A3  - INPUT4
+}
+
+if (motorS == 28){    
+//  
+analogWrite(3, Speed3RL_pwm);     //D3 - ENA
+digitalWrite(16, 0);            //AO - INPUT1
+digitalWrite(17,  0);            //A1 - INPUT2
+//   
+analogWrite(5, Speed3RL_pwm);     //D5  - ENA
+digitalWrite(14, 0);            //A2 - INPUT3
+digitalWrite(15, 1);            //A3  - INPUT4
+}
+
+if (motorS == 35){    
+//  
+analogWrite(3, Speed3RL_pwm);     //D3 - ENA
+digitalWrite(16, 0);            //AO - INPUT1
+digitalWrite(17,  1);            //A1 - INPUT2
+//   
+analogWrite(5, Speed3RL_pwm);     //D5  - ENA
+digitalWrite(14, 0);            //A2 - INPUT3
+digitalWrite(15, 0);            //A3  - INPUT4
+}   
+
+// 4   
+
+
+
+//4   
+
+if (motorS == 16){    
+//  
+analogWrite(3, Speed2_pwm);     //D3 - ENA
+digitalWrite(16, 1);            //AO - INPUT1
+digitalWrite(17, 0);            //A1 - INPUT2
+//   
+analogWrite(5, Speed2_pwm);     //D5 - ENA
+digitalWrite(14, 1);            //A2  - INPUT3
+digitalWrite(15, 0);            //A3 - INPUT4
+}
+
+if (motorS  == 12){    
+//  
+analogWrite(3, Speed2_pwm);     //D3 - ENA
+digitalWrite(16,  0);            //AO - INPUT1
+digitalWrite(17, 1);            //A1 - INPUT2
+//   
+analogWrite(5, Speed2_pwm);     //D5 - ENA
+digitalWrite(14, 0);            //A2  - INPUT3
+digitalWrite(15, 1);            //A3 - INPUT4
+}
+
+if (motorS  == 23){    
+//  
+analogWrite(3, Speed2RL_pwm);     //D3 - ENA
+digitalWrite(16,  0);            //AO - INPUT1
+digitalWrite(17, 0);            //A1 - INPUT2
+//   
+analogWrite(5, Speed2RL_pwm);     //D5 - ENA
+digitalWrite(14, 1);            //A2  - INPUT3
+digitalWrite(15, 0);            //A3 - INPUT4
+}
+
+if (motorS  == 30){    
+//  
+analogWrite(3, Speed2RL_pwm);     //D3 - ENA
+digitalWrite(16,  1);            //AO - INPUT1
+digitalWrite(17, 0);            //A1 - INPUT2
+//   
+analogWrite(5, Speed2RL_pwm);     //D5 - ENA
+digitalWrite(14, 0);            //A2  - INPUT3
+digitalWrite(15, 0);            //A3 - INPUT4
+}
+
+if (motorS  == 27){    
+//  
+analogWrite(3, Speed2RL_pwm);     //D3 - ENA
+digitalWrite(16,  0);            //AO - INPUT1
+digitalWrite(17, 0);            //A1 - INPUT2
+//   
+analogWrite(5, Speed2RL_pwm);     //D5 - ENA
+digitalWrite(14, 0);            //A2  - INPUT3
+digitalWrite(15, 1);            //A3 - INPUT4
+}
+
+if (motorS  == 34){    
+//  
+analogWrite(3, Speed2RL_pwm);     //D3 - ENA
+digitalWrite(16,  0);              //AO - INPUT1
+digitalWrite(17, 1);              //A1 - INPUT2
+//   
+analogWrite(5, Speed2RL_pwm);     //D5 - ENA
+digitalWrite(14, 0);              //A2  - INPUT3
+digitalWrite(15, 0);              //A3 - INPUT4
+}   
+
+// 4  
+
+//  
+
+if (motorS == 32){    
+// 
+analogWrite(3, Speed0RL_pwm);     //D3 - ENA
+digitalWrite(16, 1);            //AO - INPUT1
+digitalWrite(17,  0);            //A1 - INPUT2
+//  
+analogWrite(5, Speed0RL_pwm);     //D5 -  ENA
+digitalWrite(14, 0);            //A2 - INPUT3
+digitalWrite(15, 1);            //A3  - INPUT4
+}
+
+if (motorS == 25){    
+// 
+analogWrite(3, Speed0RL_pwm);     //D3 - ENA
+digitalWrite(16, 0);              //AO - INPUT1
+digitalWrite(17,  1);              //A1 - INPUT2
+//  
+analogWrite(5, Speed0RL_pwm);     //D5  - ENA
+digitalWrite(14, 1);              //A2 - INPUT3
+digitalWrite(15, 0);              //A3 - INPUT4
+}   
+
+//  
+
+if (bitRead(turret,4)) Xplus  = Xplus + 1; else Xplus = 0;
+
+if (bitRead(turret,1) && ((X<Xmax))) X=X+1+Xplus;
+if  (bitRead(turret,0) && ((X>Xmin))) X=X-1-Xplus; 
+
+servoX.write(X);  
+
+if  (bitRead(turret,3) && ((Y<Ymax))) Y=Y+1;
+if (bitRead(turret,2) && ((Y>Ymin)))  Y=Y-1;
+
+servoY.write(Y);
+
+}
